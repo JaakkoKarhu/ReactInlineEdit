@@ -68,7 +68,9 @@ export default class InlineEdit extends React.Component {
 		let inputElem = ReactDOM.findDOMNode(this.refs.input);
 		if (this.state.editing && !prevState.editing) {
 			inputElem.focus();
-			selectInputText(inputElem);
+			if(this.props.selectAllOnEdit) {
+				selectInputText(inputElem);
+			}
 		} else if (this.state.editing && prevProps.text != this.props.text) {
 			this.finishEditing();
 		}
@@ -124,7 +126,18 @@ export default class InlineEdit extends React.Component {
 		});
 	};
 
+	getEditBtn = () => {
+		if (!this.props.editBtn) {
+			return <div className={ `edit ${this.props.element || this.props.staticElement}` } 
+						onClick={ this.startEditing } />
+		}
+		else {
+			return null;
+		}
+	}
+
 	render() {
+		const EditBtn = this.getEditBtn();
 		if (this.props.isDisabled) {
 		  const Element = this.props.element || this.props.staticElement;
 		  return <div className='inline-edit'>
@@ -132,6 +145,7 @@ export default class InlineEdit extends React.Component {
 			  				 style={this.props.style} >
 			  				 {this.state.text || this.props.placeholder}
 		  			</Element>
+		  			{ EditBtn }
 		  		</div>
 		} else if (!this.state.editing) {
 			const Element = this.props.element || this.props.staticElement;
@@ -142,10 +156,11 @@ export default class InlineEdit extends React.Component {
 								 style={this.props.style} >
 								 {this.state.text || this.props.placeholder}
 						</Element>
+						{ EditBtn }
 					</div>
 		} else {
 			const Element = this.props.element || this.props.editingElement;
-			return	<div className={ `inline-edit ${this.props.activeClassName}` }>
+			return	<div className={ `inline-edit ${ this.props.activeClassName ? this.props.activeClassName : 'editing'}` }>
 						<Element className={ `${this.props.className} ${this.props.staticElement}` }
 								 onClick={this.clickWhenEditing}
 								 onKeyDown={this.keyDown}
@@ -155,6 +170,7 @@ export default class InlineEdit extends React.Component {
 								 onChange={this.textChanged}
 								 style={this.props.style}
 								 ref="input" />
+						{ EditBtn }
 					</div>
 		}
 	}
