@@ -39,6 +39,7 @@ export default class InlineEdit extends React.Component {
 		text: this.props.text,
 		minLength: this.props.minLength,
 		maxLength: this.props.maxLength,
+		asyncStatus: false
 	};
 
 	componentWillMount() {
@@ -98,8 +99,14 @@ export default class InlineEdit extends React.Component {
 	commitEditing = () => {
 		this.setState({editing: false, text: this.state.text});
 		let newProp = {};
-		newProp[this.props.paramName] = this.state.text;
-		this.props.change(newProp);
+		let paramName = this.props.paramName ? this.props.paramName : 'value';
+		newProp[paramName] = this.state.text;
+		if (this.props.asyncChange) {
+			this.props.asyncChange.call(this, newProp)
+		}
+		else {
+			this.props.change(newProp);
+		}
 	};
 
 	clickWhenEditing = (e) => {
@@ -127,9 +134,12 @@ export default class InlineEdit extends React.Component {
 	};
 
 	getEditBtn = () => {
+		let asyncClass = this.state.asyncStatus ? `async-${this.state.asyncStatus }` : '';
 		if (!this.props.editBtn) {
-			return <div className={ `edit ${this.props.element || this.props.staticElement}` } 
-						onClick={ this.startEditing } />
+			return <div className={ 
+										`edit ${this.props.element || this.props.staticElement} ${ asyncClass }` 
+									} 
+									onClick={ this.startEditing } />
 		}
 		else {
 			return null;
