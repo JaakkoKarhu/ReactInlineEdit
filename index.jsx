@@ -171,7 +171,7 @@ export default class InlineEdit extends React.Component {
 		} else {
 			const Element = this.props.element || this.props.editingElement;
 			return	<div className={ `inline-edit ${ this.props.activeClassName ? this.props.activeClassName : 'editing'}` }>
-						<Element className={ `${this.props.className} ${this.props.staticElement}` }
+						<Element className={ `${this.props.className ? this.props.className : ''} ${this.props.staticElement}` }
 								 onClick={this.clickWhenEditing}
 								 onKeyDown={this.keyDown}
 								 onBlur={this.finishEditing}
