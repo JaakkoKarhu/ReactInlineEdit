@@ -7,9 +7,10 @@ function selectInputText(element) {
 
 export default class InlineEdit extends React.Component {
 	static propTypes = {
-		text: React.PropTypes.string.isRequired,
+		text: React.PropTypes.string,
 		paramName: React.PropTypes.string.isRequired,
-		change: React.PropTypes.func.isRequired,
+		change: React.PropTypes.func,
+		asyncChange: React.PropTypes.func,
 		placeholder: React.PropTypes.string,
 		className: React.PropTypes.string,
 		activeClassName: React.PropTypes.string,
@@ -39,7 +40,8 @@ export default class InlineEdit extends React.Component {
 		text: this.props.text,
 		minLength: this.props.minLength,
 		maxLength: this.props.maxLength,
-		asyncStatus: false
+		asyncStatus: false,
+		inputWidth: 0
 	};
 
 	componentWillMount() {
@@ -81,7 +83,11 @@ export default class InlineEdit extends React.Component {
 		if (this.props.stopPropagation) {
 			e.stopPropagation()
 		}
-		this.setState({editing: true, text: this.props.text});
+		this.setState({
+			editing: true,
+			text: this.props.text,
+			inputWidth: this.refs.inlineText.offsetWidth
+		});
 	};
 
 	finishEditing = () => {
@@ -127,9 +133,10 @@ export default class InlineEdit extends React.Component {
 		}
 	};
 
-	textChanged = (event) => {
+	textChanged = (event, id) => {
 		this.setState({
-			text: event.target.value.trim()
+			text: event.target.value.trim(),
+			inputWidth: document.getElementById(id).offsetWidth
 		});
 	};
 
@@ -148,36 +155,49 @@ export default class InlineEdit extends React.Component {
 
 	render() {
 		const EditBtn = this.getEditBtn();
+		const StaticElem = this.props.staticElement;
 		if (this.props.isDisabled) {
-		  const Element = this.props.element || this.props.staticElement;
-		  return <div className='inline-edit'>
-		  			<Element className={this.props.className}
-			  				 style={this.props.style} >
-			  				 {this.state.text || this.props.placeholder}
-		  			</Element>
-		  			{ EditBtn }
-		  		</div>
+			const Element = this.props.element || this.props.staticElement;
+			return <div className='inline-edit'>
+								<Element className={this.props.className}
+										 style={this.props.style} >
+										 {this.state.text || this.props.placeholder}
+								</Element>
+								{ EditBtn }
+						</div>
 		} else if (!this.state.editing) {
 			const Element = this.props.element || this.props.staticElement;
 			return	<div className='inline-edit' >
 						<Element className={this.props.className}
 								 onClick={this.startEditing}
 								 tabIndex={this.props.tabIndex}
-								 style={this.props.style} >
+								 style={this.props.style}
+								 ref="inlineText">
 								 {this.state.text || this.props.placeholder}
 						</Element>
 						{ EditBtn }
 					</div>
 		} else {
 			const Element = this.props.element || this.props.editingElement;
-			return	<div className={ `inline-edit ${ this.props.activeClassName ? this.props.activeClassName : 'editing'}` }>
+			/* Just a random name to avoid namespace collisions.
+			 * "Ghost element" is needed to render for finding
+			 * the right length
+			 */
+			let id = 'measure-length-inline-edit____';
+			return	<div className={ `inline-edit ${ this.props.activeClassName ? this.props.activeClassName : 'editing'}` }
+									 style={ { width: `${this.state.inputWidth + 10}px`} } >
+						<StaticElem id={ id }
+												className={`${this.props.className ? this.props.className : ''} measure-length`}
+												style={this.props.style} >
+												{this.state.text || this.props.placeholder}
+						</StaticElem>
 						<Element className={ `${this.props.className ? this.props.className : ''} ${this.props.staticElement}` }
 								 onClick={this.clickWhenEditing}
 								 onKeyDown={this.keyDown}
 								 onBlur={this.finishEditing}
 								 placeholder={this.props.placeholder}
 								 defaultValue={this.state.text}
-								 onChange={this.textChanged}
+								 onChange={ (e) => { this.textChanged(e, id) } }
 								 style={this.props.style}
 								 ref="input" />
 						{ EditBtn }
