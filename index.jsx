@@ -134,7 +134,6 @@ export default class InlineEdit extends React.Component {
 	};
 
 	textChanged = (event) => {
-		console.log('--- PARENT TEXT DID CHANGE --', this.state)
 		this.setState({
 			text: event.target.value.trim(),
 		});
@@ -154,16 +153,14 @@ export default class InlineEdit extends React.Component {
 	}
 
 	updateParentStateHandler = (state) => {
-		console.log('fdfddf', state)
 		this.setState(state)
 	}
 
 	render() {
 		const EditBtn = this.getEditBtn();
-		console.log('this state text', this.state.text)
 		if (this.props.isDisabled) {
 			const Element = this.props.element || this.props.staticElement;
-			return <div className='inline-edit'>
+			return <div className={ `inline-edit ${this.props.className ? 'inline-edit-' + this.props.className : ''}` }>
 								<Element className={this.props.className}
 										 style={this.props.style} >
 										 {this.state.text || this.props.placeholder}
@@ -172,7 +169,7 @@ export default class InlineEdit extends React.Component {
 						</div>
 		} else if (!this.state.editing) {
 			const Element = this.props.element || this.props.staticElement;
-			return	<div className='inline-edit' >
+			return  <div className={ `inline-edit ${this.props.className ? 'inline-edit-' + this.props.className : ''}` } >
 						<Element className={this.props.className}
 								 onClick={this.startEditing}
 								 tabIndex={this.props.tabIndex}
@@ -195,14 +192,14 @@ export default class InlineEdit extends React.Component {
 			 * render easily causes infinite loop, but also very
 			 * hacky solution.
 			 */
-			return	<div className={ `inline-edit ${ this.props.activeClassName ? this.props.activeClassName : 'editing'}` }
-									 style={ { width: `${ this.state.inputWidth + 2 }px`} } >
-							<GhostElem className={this.props.className}
-											   style={this.props.style}
-											   setParentState={ this.updateParentStateHandler }
-											   staticElem={ this.props.staticElement }
-											   inputValue={ this.state.text || this.props.placeholder }>
-							</GhostElem>
+			return  <div className={ `inline-edit ${ this.props.activeClassName ? this.props.activeClassName : 'editing'} ${this.props.className ? 'inline-edit-' + this.props.className : ''}` }
+									 style={ { width: `${ this.state.inputWidth + 1 }px`} } >
+						<GhostElem className={this.props.className}
+											 style={this.props.style}
+											 setParentState={ this.updateParentStateHandler }
+											 staticElem={ this.props.staticElement }
+											 inputValue={ this.state.text || this.props.placeholder }>
+						</GhostElem>
 						<Element className={ `${this.props.className ? this.props.className : ''} ${this.props.staticElement}` }
 								 onClick={this.clickWhenEditing}
 								 onKeyDown={this.keyDown}
@@ -241,11 +238,10 @@ const GhostElem = class GhostElem extends React.Component {
 		}
 		else {
 			'WONT UPDATE'
-		}		
+		}   
 	}
 	
 	render() {
-		console.log('___RENDERING')
 		const StaticElem = this.props.staticElem;
 		const inputValue = this.props.inputValue;
 		return (
