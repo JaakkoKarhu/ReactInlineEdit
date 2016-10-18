@@ -133,10 +133,10 @@ export default class InlineEdit extends React.Component {
 		}
 	};
 
-	textChanged = (event, id) => {
+	textChanged = (event) => {
+		console.log('--- PARENT TEXT DID CHANGE --', this.state)
 		this.setState({
 			text: event.target.value.trim(),
-			inputWidth: document.getElementById(id).offsetWidth
 		});
 	};
 
@@ -153,9 +153,14 @@ export default class InlineEdit extends React.Component {
 		}
 	}
 
+	updateParentStateHandler = (state) => {
+		console.log('fdfddf', state)
+		this.setState(state)
+	}
+
 	render() {
 		const EditBtn = this.getEditBtn();
-		const StaticElem = this.props.staticElement;
+		console.log('this state text', this.state.text)
 		if (this.props.isDisabled) {
 			const Element = this.props.element || this.props.staticElement;
 			return <div className='inline-edit'>
@@ -181,23 +186,30 @@ export default class InlineEdit extends React.Component {
 			const Element = this.props.element || this.props.editingElement;
 			/* Just a random name to avoid namespace collisions.
 			 * "Ghost element" is needed to render for finding
-			 * the right length
+			 * the right length for the input.
+			 *
+			 * Ghost fires update event after the parent element
+			 * is updated - and thne sets the parent state width.
+			 *
+			 * Dangerous method, since firing setState to parent on
+			 * render easily causes infinite loop, but also very
+			 * hacky solution.
 			 */
-			let id = 'measure-length-inline-edit____';
 			return	<div className={ `inline-edit ${ this.props.activeClassName ? this.props.activeClassName : 'editing'}` }
-									 style={ { width: `${this.state.inputWidth + 10}px`} } >
-						<StaticElem id={ id }
-												className={`${this.props.className ? this.props.className : ''} measure-length`}
-												style={this.props.style} >
-												{this.state.text || this.props.placeholder}
-						</StaticElem>
+									 style={ { width: `${ this.state.inputWidth + 2 }px`} } >
+							<GhostElem className={this.props.className}
+											   style={this.props.style}
+											   setParentState={ this.updateParentStateHandler }
+											   staticElem={ this.props.staticElement }
+											   inputValue={ this.state.text || this.props.placeholder }>
+							</GhostElem>
 						<Element className={ `${this.props.className ? this.props.className : ''} ${this.props.staticElement}` }
 								 onClick={this.clickWhenEditing}
 								 onKeyDown={this.keyDown}
 								 onBlur={this.finishEditing}
 								 placeholder={this.props.placeholder}
 								 defaultValue={this.state.text}
-								 onChange={ (e) => { this.textChanged(e, id) } }
+								 onChange={ this.textChanged }
 								 style={this.props.style}
 								 ref="input" />
 						{ EditBtn }
@@ -205,3 +217,43 @@ export default class InlineEdit extends React.Component {
 		}
 	}
 }
+
+/* Ghost elem mimics the parent element as
+ * good as possible to get the most accurate
+ * width.
+ */
+
+const GhostElem = class GhostElem extends React.Component {
+
+	constructor(props) {
+		super(props);
+		this.setParentState = this.props.setParentState
+	}
+
+	state = {
+		text: this.props.inputValue
+	}
+
+	componentDidUpdate() {
+		if(this.props.inputValue!=this.state.text) {
+			this.props.setParentState({ inputWidth:  this.refs.measureLength.offsetWidth })
+			this.setState({text:this.props.inputValue})
+		}
+		else {
+			'WONT UPDATE'
+		}		
+	}
+	
+	render() {
+		console.log('___RENDERING')
+		const StaticElem = this.props.staticElem;
+		const inputValue = this.props.inputValue;
+		return (
+				<StaticElem className={ `${this.props.className} measure-length ghost-elem`}
+										style={this.props.style}
+										ref='measureLength'>
+					{ inputValue }
+				</StaticElem>
+		);
+	}
+};
