@@ -59,7 +59,13 @@ var InlineEdit = function (_React$Component) {
         text: _this.props.text,
         inputWidth: _this.refs.inlineText.offsetWidth
       });
+      if (_this.props.onFocus) {
+        _this.props.onFocus(_this.state.text);
+      }
     }, _this.finishEditing = function () {
+      if (_this.props.onBlur) {
+        _this.props.onBlur(_this.state.text);
+      }
       if (_this.isInputValid(_this.state.text) && _this.props.text != _this.state.text) {
         _this.commitEditing();
       } else if (_this.props.text === _this.state.text || !_this.isInputValid(_this.state.text)) {

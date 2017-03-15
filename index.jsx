@@ -89,9 +89,15 @@ export default class InlineEdit extends React.Component {
       text: this.props.text,
       inputWidth: this.refs.inlineText.offsetWidth
     });
+    if (this.props.onFocus) {
+      this.props.onFocus(this.state.text)
+    }
   };
 
   finishEditing = () => {
+    if (this.props.onBlur) {
+      this.props.onBlur(this.state.text)
+    }
     if (this.isInputValid(this.state.text) && this.props.text != this.state.text){
       this.commitEditing();
     } else if (this.props.text === this.state.text || !this.isInputValid(this.state.text)) {
