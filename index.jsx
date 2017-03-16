@@ -35,15 +35,25 @@ export default class InlineEdit extends React.Component {
     editing: false
   };
 
-  state = {
-    editing: this.props.editing,
-    text: this.props.text,
-    minLength: this.props.minLength,
-    maxLength: this.props.maxLength,
-    asyncStatus: false,
-    inputWidth: 0,
-    inputHeight: null
-  };
+  constructor(props) {
+    super(props)
+    this.state = {
+      editing: this.props.editing,
+      text: this.props.text,
+      minLength: this.props.minLength,
+      maxLength: this.props.maxLength,
+      asyncStatus: false,
+      inputWidth: 0,
+      inputHeight: null
+    };
+    this.trackBlurEventClick = (e) => {
+      this.lastClickedElement = e.target
+      if (this.state.editing&&this.refs.input, e.target!=this.refs.input) {
+        this.finishEditing()
+      }
+    }
+  }
+
 
   componentWillMount() {
     this.isInputValid = this.props.validate || this.isInputValid;
@@ -81,6 +91,9 @@ export default class InlineEdit extends React.Component {
   }
 
   startEditing = (e) => {
+    if (this.props.preventBlurEventSelectors) {
+      document.addEventListener('mousedown', this.trackBlurEventClick);
+    }
     if (this.props.stopPropagation) {
       e.stopPropagation()
     }
@@ -94,10 +107,24 @@ export default class InlineEdit extends React.Component {
     }
   };
 
-  finishEditing = () => {
+  finishEditing = (e) => {
+    let preventBlurEventSelectors = this.props.preventBlurEventSelectors
+    let preventBlurEvent = false
+    if (preventBlurEventSelectors) {
+      preventBlurEventSelectors.map((selector) => {
+        if (this.lastClickedElement.className.includes(selector)) {
+          preventBlurEvent = true
+        }
+      })
+    }
+    if (preventBlurEvent) {
+      this.refs.input.focus()
+      return
+    }
     if (this.props.onBlur) {
       this.props.onBlur(this.state.text)
     }
+    document.removeEventListener('mousedown', this.trackBlurEventClick)
     if (this.isInputValid(this.state.text) && this.props.text != this.state.text){
       this.commitEditing();
     } else if (this.props.text === this.state.text || !this.isInputValid(this.state.text)) {

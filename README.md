@@ -12,6 +12,8 @@ Watch a [demo](http://htmlpreview.github.io/?https://github.com/kaivi/ReactInlin
 
 `npm install react-edit-inline --save-dev`
 
+To build, run 'npm run build'
+
 ### Required props
 - `text`:`string` initial text
 - `paramName`:`string` name of the parameter to be returned to `change` function

@@ -31,26 +31,15 @@ function selectInputText(element) {
 var InlineEdit = function (_React$Component) {
   _inherits(InlineEdit, _React$Component);
 
-  function InlineEdit() {
-    var _ref;
-
-    var _temp, _this, _ret;
-
+  function InlineEdit(props) {
     _classCallCheck(this, InlineEdit);
 
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-      args[_key] = arguments[_key];
-    }
+    var _this = _possibleConstructorReturn(this, (InlineEdit.__proto__ || Object.getPrototypeOf(InlineEdit)).call(this, props));
 
-    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = InlineEdit.__proto__ || Object.getPrototypeOf(InlineEdit)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
-      editing: _this.props.editing,
-      text: _this.props.text,
-      minLength: _this.props.minLength,
-      maxLength: _this.props.maxLength,
-      asyncStatus: false,
-      inputWidth: 0,
-      inputHeight: null
-    }, _this.startEditing = function (e) {
+    _this.startEditing = function (e) {
+      if (_this.props.preventBlurEventSelectors) {
+        document.addEventListener('mousedown', _this.trackBlurEventClick);
+      }
       if (_this.props.stopPropagation) {
         e.stopPropagation();
       }
@@ -62,18 +51,38 @@ var InlineEdit = function (_React$Component) {
       if (_this.props.onFocus) {
         _this.props.onFocus(_this.state.text);
       }
-    }, _this.finishEditing = function () {
+    };
+
+    _this.finishEditing = function (e) {
+      var preventBlurEventSelectors = _this.props.preventBlurEventSelectors;
+      var preventBlurEvent = false;
+      if (preventBlurEventSelectors) {
+        preventBlurEventSelectors.map(function (selector) {
+          if (_this.lastClickedElement.className.includes(selector)) {
+            preventBlurEvent = true;
+          }
+        });
+      }
+      if (preventBlurEvent) {
+        _this.refs.input.focus();
+        return;
+      }
       if (_this.props.onBlur) {
         _this.props.onBlur(_this.state.text);
       }
+      document.removeEventListener('mousedown', _this.trackBlurEventClick);
       if (_this.isInputValid(_this.state.text) && _this.props.text != _this.state.text) {
         _this.commitEditing();
       } else if (_this.props.text === _this.state.text || !_this.isInputValid(_this.state.text)) {
         _this.cancelEditing();
       }
-    }, _this.cancelEditing = function () {
+    };
+
+    _this.cancelEditing = function () {
       _this.setState({ editing: false, text: _this.props.text });
-    }, _this.commitEditing = function () {
+    };
+
+    _this.commitEditing = function () {
       _this.setState({ editing: false, text: _this.state.text });
       var newProp = {};
       var paramName = _this.props.paramName ? _this.props.paramName : 'value';
@@ -83,23 +92,33 @@ var InlineEdit = function (_React$Component) {
       } else {
         _this.props.change(newProp);
       }
-    }, _this.clickWhenEditing = function (e) {
+    };
+
+    _this.clickWhenEditing = function (e) {
       if (_this.props.stopPropagation) {
         e.stopPropagation();
       }
-    }, _this.isInputValid = function (text) {
+    };
+
+    _this.isInputValid = function (text) {
       return text.length >= _this.state.minLength && text.length <= _this.state.maxLength;
-    }, _this.keyDown = function (event) {
+    };
+
+    _this.keyDown = function (event) {
       if (event.keyCode === 13) {
         _this.finishEditing();
       } else if (event.keyCode === 27) {
         _this.cancelEditing();
       }
-    }, _this.textChanged = function (event) {
+    };
+
+    _this.textChanged = function (event) {
       _this.setState({
         text: event.target.value.trim()
       });
-    }, _this.getEditBtn = function () {
+    };
+
+    _this.getEditBtn = function () {
       var asyncClass = _this.state.asyncStatus ? 'async-' + _this.state.asyncStatus : '';
       if (!_this.props.editBtn) {
         return _react2.default.createElement('div', { className: 'edit ' + (_this.props.element || _this.props.staticElement) + ' ' + asyncClass,
@@ -107,9 +126,28 @@ var InlineEdit = function (_React$Component) {
       } else {
         return null;
       }
-    }, _this.updateParentStateHandler = function (state) {
+    };
+
+    _this.updateParentStateHandler = function (state) {
       _this.setState(state);
-    }, _temp), _possibleConstructorReturn(_this, _ret);
+    };
+
+    _this.state = {
+      editing: _this.props.editing,
+      text: _this.props.text,
+      minLength: _this.props.minLength,
+      maxLength: _this.props.maxLength,
+      asyncStatus: false,
+      inputWidth: 0,
+      inputHeight: null
+    };
+    _this.trackBlurEventClick = function (e) {
+      _this.lastClickedElement = e.target;
+      if (_this.state.editing && _this.refs.input, e.target != _this.refs.input) {
+        _this.finishEditing();
+      }
+    };
+    return _this;
   }
 
   _createClass(InlineEdit, [{
